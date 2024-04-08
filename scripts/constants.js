@@ -19,6 +19,7 @@ const CONSTANTS = {
     SHOW_PLAYER_LIST_REST_BUTTON: "show-player-list-rest-button",
     ENABLE_AUTO_ROLL_HIT_DICE: "enable-auto-roll-hit-dice",
     ENABLE_PROMPT_REST_TIME_PASSING: "enable-prompt-rest-time-passing",
+    ENABLE_PROMPT_LONG_REST_SPELL_REMINDER: "enable-prompt-long-rest-spell-reminder",
     ENABLE_SIMPLE_CALENDAR_INTEGRATION: "enable-simple-calendar-integration",
     PREVENT_USER_REST: "prevent-user-rest",
     PERIAPT_ROLL_MECHANICS: "periapt-roll-mechanics",
@@ -129,7 +130,20 @@ const CONSTANTS = {
     MULTIPLY_ROLL: "multiply-roll",
     MULTIPLY_TOTAL: "multiply-total"
   },
+
   
+  FULL_CASTERS: ['cleric', 'druid', 'wizard'],
+  HALF_CASTERS: ['artificer', 'paladin', 'ranger'],
+  QUARTER_CASTERS: [],
+  NONE_CASTERS: [
+    'artificer',
+    'cleric',
+    'druid',
+    'paladin',
+    'ranger',
+    'wizard',
+  ],
+    
   USING_DEFAULT_LONG_REST_SETTINGS() {
     const settings = this.GET_DEFAULT_SETTINGS();
     for (const [key, setting] of Object.entries(settings)) {
@@ -190,6 +204,15 @@ CONSTANTS.DEFAULT_SETTINGS = {
     group: "general",
     config: false,
     default: true,
+    type: Boolean
+  },
+  [CONSTANTS.SETTINGS.ENABLE_PROMPT_LONG_REST_SPELL_REMINDER]: {
+    name: "REST-RECOVERY.Settings.General.EnablePromptLongRestSpellReminder.Title",
+    hint: "REST-RECOVERY.Settings.General.EnablePromptLongRestSpellReminder.Hint",
+    scope: "world",
+    group: "general",
+    config: false,
+    default: false,
     type: Boolean
   },
   [CONSTANTS.SETTINGS.ENABLE_SIMPLE_CALENDAR_INTEGRATION]: {
@@ -1140,7 +1163,7 @@ CONSTANTS.FLAGS.DND.REQUIRED_WATER = dndFlag + "waterUnits";
 CONSTANTS.CONSUMABLE = {
   NONE: "none",
   REGULAR: "regular"
-}
+};
 
 CONSTANTS.PATH = `modules/${CONSTANTS.MODULE_NAME}/`;
 

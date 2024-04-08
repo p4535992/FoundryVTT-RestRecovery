@@ -270,6 +270,14 @@
         "NotSatedWater": "You require {units} units of water to be sated.",
         "FullUnit": "Consume full unit",
         "HalfUnit": "Consume half unit"
+      },
+      "PromptLongRestSpellReminder":{
+        "Title": "It looks like you have completed a long rest. You may now prepare new spells for the day.",
+        "PrefixPreparedSpells": "Prepared Spells:",
+        "SubTitle": "Current Prepared Spells",
+        "Ok": "Open Character Sheet",
+        "Close": "Close",
+        "LevelPrefix": "Level"
       }
     },
     "Traits": {
@@ -343,6 +351,10 @@
         "EnablePromptRestTimePassing": {
           "Title": "Enable automatic time passage on prompt rest",
           "Hint": "This enables time passing whenever players and prompted to rest by a GM. This may cause time-based active effects on characters to expire."
+        },
+        "EnablePromptLongRestSpellReminder": {
+          "Title": "Enable Long Rest Spell Reminder",
+          "Hint": "If this module setting is enabled at the end of a long rest a dialog will appear to the players automatically, it will only pop-up for classes that prepare spells and will tell them how many spells they may prepare according to RAW (factoring in differences for full caster and half caster classes)."
         },
         "EnableSimpleCalendarIntegration": {
           "Title": "Enable Simple Calendar integration",

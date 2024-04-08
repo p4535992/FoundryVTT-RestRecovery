@@ -223,3 +223,286 @@ export function addToUpdates(updates, toAdd){
     updates.push(toAdd);
   }
 }
+
+/**
+ * Utility method to check the caster type of the actor is FULL
+ * @param {Actor} actor The actor to check
+ * @returns {boolean} The caster type of the actor is FULL
+ */
+export function isFullCaster(className) {
+  // TODO add tidy5e integration ?
+  if (CONSTANTS.FULL_CASTERS.some((c) => className.includes(c))) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Utility method to check the caster type of the actor is HALF
+ * @param {Actor} actor The actor to check
+ * @returns {boolean} The caster type of the actor is HALF
+ */
+export function isHalfCaster(className) {
+  // TODO add tidy5e integration ?
+  if (CONSTANTS.HALF_CASTERS.some((c) => className.includes(c))) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Utility method to check the caster type of the actor is QUARTER
+ * @param {Actor} actor The actor to check
+ * @returns {boolean} The caster type of the actor is QUARTER
+ */
+export function isQuarterCaster(className) {
+  // TODO add tidy5e integration ?
+  if (CONSTANTS.QUARTER_CASTERS.some((c) => className.includes(c))) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Utility method to check the caster type of the actor is NONE
+ * @param {Actor} actor The actor to check
+ * @returns {boolean} The caster type of the actor is NONE
+ */
+function isNoneCaster(actor) {
+  // TODO add tidy5e integration ?
+  const classes = Object.keys(actor.classes);
+  if (CONSTANTS.NONE_CASTERS.some((c) => classes.includes(c))) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Utility method to check the casting ability of the actor
+ * @param {string} className The class name identifier
+ * @returns {string} The casting ability of the actor
+ */
+function getCastingAbility(className) {
+  return actor.classes[className]?.system.spellcasting.ability;
+}
+
+/**
+ * Utility method to check if the class level of the actor
+ * @param {string} className The class name identifier
+ * @returns {number} The class level of the actor
+ */
+function getClassLvl(className) {
+  return actor.classes[className].system.levels;
+}
+
+/**
+ * Utility method to check if themu
+ * @param {string} className The class name identifier
+ * @returns {number} The spells slot multiplier
+ */
+function getCasterMod(className) {
+  if (isFullCaster(className)) {
+    return 1;
+  } else if (isHalfCaster(className)) {
+    return 0.5;
+  } else if (isQuarterCaster(className)) {
+    return 0.25;
+  } else {
+    return 0;
+  }
+}
+
+/**
+ * Utility method to retrieve the prepared spells
+ * @param {Actor} actor The actor to check
+ * @returns {Item[]} All the prepared spells on the actor
+ */
+function getPreparedSpells(actor) {
+  return actor.items.filter(
+    (i) =>
+      i.type === 'spell' &&
+      i.system.preparation?.prepared &&
+      i.system.preparation?.mode === 'prepared'
+  );
+}
+
+/**
+ * Utility method to retrieve the max number of prepared spells from a actor
+ * @param {Actor} actor The actor to check
+ * @returns {number} The max number of prepared spells from a actor
+ */
+function getMaxPrepared(actor) {
+  // TODO add tidy5e integration ?
+  console.log(actor);
+  const classes = Object.keys(actor.classes).filter((c) =>
+    prepCasters.includes(c)
+  );
+  console.log(classes);
+  let maxPrepNum = 0;
+
+  for (const instance of classes) {
+    const castingAbility = getCastingAbility(instance);
+    const modifier = actor.system.abilities[castingAbility].mod;
+    const classLvl = getClassLvl(instance);
+    const casterMod = getCasterMod(instance);
+
+    maxPrepNum += modifier + Math.floor(casterMod * classLvl);
+    console.log('maxPrepNum = ' + maxPrepNum);
+  }
+  return maxPrepNum;
+}
+
+/**
+ * Automatically fires after a long rest is completed and only for player characters who prepare spells. 
+ * This will fire for any owner who initiates the long rest, including the GM.
+ * @param {Actor} actor The actor to check
+ * @param {object} results 
+ * @returns {void} It will open a dialog for checkout the spells
+ */
+export async function promptLongRestSpellReminder(actor, results) {
+  if(!getSetting(CONSTANTS.SETTINGS.ENABLE_PROMPT_LONG_REST_SPELL_REMINDER)) {
+    return;
+  }
+
+  if (results.longRest && isNoneCaster(actor) && actor.hasPlayerOwner) {
+    const numPrepared = getPreparedSpells(actor).length;
+    const numMaxPrepared = getMaxPrepared(actor);
+
+    // TODO in some way integrate this code ???
+    /*
+    let numPrepared = 0;
+    let numMaxPrepared = 0;
+
+    const spellMultiplier = lib.determineMultiplier(CONSTANTS.SETTINGS.LONG_SPELLS_MULTIPLIER);
+    const pactMultiplier = lib.determineMultiplier(CONSTANTS.SETTINGS.LONG_PACT_SPELLS_MULTIPLIER);
+    const preparedSpells = this.actor.system.spells.filter(
+      (i) =>
+        i.type === 'spell' &&
+        i.system.preparation?.prepared &&
+        i.system.preparation?.mode === 'prepared'
+    );
+
+    for (let [level, slot] of Object.entries(preparedSpells)) {
+      if (!slot.override && !slot.max) continue;
+      let multiplier = level === "pact" ? pactMultiplier : spellMultiplier;
+      if (level !== "pact" && customSpellRecovery) {
+        results.updateData[`system.spells.${level}.value`] = 0;
+        continue;
+      }
+      let spellMax = slot.override || slot.max;
+      let recoverSpells = typeof multiplier === "string"
+        ? Math.max(lib.evaluateFormula(multiplier, { slot: foundry.utils.deepClone(slot) })?.total, 1)
+        : Math.max(Math.floor(spellMax * multiplier), multiplier ? 1 : multiplier);
+      
+    }
+    */
+    const data = getPreparedSpells(actor);
+
+    // The Dialog instance reminding the player to prepare spells
+    const content = `
+    <form>
+      <div class="${CONSTANTS.MODULE_NAME}-prep-spells-dialog">${game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.Title`)}</div>
+      <br>
+      <div class="${CONSTANTS.MODULE_NAME}-prep-spells-dialog-hint">${game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.PrefixPreparedSpells`)} ${numPrepared}/${numMaxPrepared}</div>
+    </form>
+    `;
+    
+    const style = `
+    <style>
+      div.${CONSTANTS.MODULE_NAME}-prep-spells-dialog {
+        margin-top: 5px;
+      }
+
+      div.${CONSTANTS.MODULE_NAME}-prep-spells-dialog-hint {
+        text-align: center; 
+        font-weight: bold; 
+        opacity: 0.5;
+      }
+    
+      table.${CONSTANTS.MODULE_NAME}-prep-spells-table {
+        margin-left: auto;
+        margin-right: auto;
+
+        th {
+          font-size: 20px;
+        }
+
+        .td-level-label {
+          padding-left: 5px;
+          font-size: 17px;
+          font-weight: 500;
+          opacity: 0.4;
+          position: sticky;
+          left: 85%;
+          font-variant: all-small-caps;
+        }
+      
+        img.prep-spells-img {
+          height: 32px;
+          display: block;
+          float: left;
+          margin-right: 6px;
+        }
+      
+        .td-spell-row.container {
+          display: flex;
+          align-items: center;
+          height: auto;
+          padding-left: 5px;
+        }
+      }
+    </style>
+    `;
+
+    // Generate table
+
+    // This function sorts the spells by level before inserting them into the table
+    let sortedData = data.sort((a, b) => a.system.level - b.system.level);;
+    //console.log(sortedData);
+    let table = `<table class="${CONSTANTS.MODULE_NAME}-prep-spells-table">`;
+
+    table += `
+      <tr>
+        <th>${game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.SubTitle`)}</th>
+      </tr>
+    `;
+    sortedData.forEach((item) => {
+      table += `
+        <tr>
+          <td class="td-spell" valign:"middle">
+            <div class="td-spell-row container">
+              <img src="${item.img}" class="prep-spells-img">${item.name} 
+              <div class="td-level-label">${game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.LevelPrefix`)} ${item.system.level}</div>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    table += "</table>";
+
+    
+    new Dialog({
+      title: actor.name,
+      content: style + content + table,
+      buttons: {
+        ok: {
+          label: game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.Ok`),
+          icon: '<i class="fas fa-address-book"></i>',
+          callback: () => {
+            actor.sheet.render(true);
+          },
+        },
+        close: {
+          label: game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.Close`),
+          icon: `<i class="fas fa-times"></i>`,
+          callback: () => {},
+        },
+      },
+    }).render(true, { width: 'auto', height: 'auto' });
+  }
+}

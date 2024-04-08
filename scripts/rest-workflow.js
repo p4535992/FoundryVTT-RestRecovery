@@ -255,6 +255,7 @@ export default class RestWorkflow {
     Hooks.on('dnd5e.restCompleted', async (actor, results) => {
       await actor.deleteEmbeddedDocuments("Item", results?.deleteItems ?? [], { isRest: true });
       await actor.createEmbeddedDocuments("Item", results?.createItems ?? [], { isRest: true });
+      await lib.promptLongRestSpellReminder(actor, results);
     });
 
     this._setupFoodListeners();
