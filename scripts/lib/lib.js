@@ -230,7 +230,7 @@ export function addToUpdates(updates, toAdd){
  * @returns {boolean} The caster type of the actor is FULL
  */
 export function isFullCaster(className) {
-  // TODO add tidy5e integration ?
+  // TODO add tidy5e integration and a module setting for custom stuff ?
   if (CONSTANTS.FULL_CASTERS.some((c) => className.includes(c))) {
     return true;
   } else {
@@ -244,7 +244,7 @@ export function isFullCaster(className) {
  * @returns {boolean} The caster type of the actor is HALF
  */
 export function isHalfCaster(className) {
-  // TODO add tidy5e integration ?
+  // TODO add tidy5e integration and a module setting for custom stuff ?
   if (CONSTANTS.HALF_CASTERS.some((c) => className.includes(c))) {
     return true;
   } else {
@@ -258,7 +258,7 @@ export function isHalfCaster(className) {
  * @returns {boolean} The caster type of the actor is QUARTER
  */
 export function isQuarterCaster(className) {
-  // TODO add tidy5e integration ?
+  // TODO add tidy5e integration and a module setting for custom stuff ?
   if (CONSTANTS.QUARTER_CASTERS.some((c) => className.includes(c))) {
     return true;
   } else {
@@ -272,7 +272,7 @@ export function isQuarterCaster(className) {
  * @returns {boolean} The caster type of the actor is NONE
  */
 function isNoneCaster(actor) {
-  // TODO add tidy5e integration ?
+  // TODO add tidy5e integration and a module setting for custom stuff ?
   const classes = Object.keys(actor.classes);
   if (CONSTANTS.NONE_CASTERS.some((c) => classes.includes(c))) {
     return true;
@@ -300,11 +300,12 @@ function getClassLvl(className) {
 }
 
 /**
- * Utility method to check if themu
+ * Utility method to check if the mod of the caster 
  * @param {string} className The class name identifier
  * @returns {number} The spells slot multiplier
  */
 function getCasterMod(className) {
+  // TODO add tidy5e integration and a module setting for custom stuff ?
   if (isFullCaster(className)) {
     return 1;
   } else if (isHalfCaster(className)) {
@@ -336,7 +337,7 @@ function getPreparedSpells(actor) {
  * @returns {number} The max number of prepared spells from a actor
  */
 function getMaxPrepared(actor) {
-  // TODO add tidy5e integration ?
+  // TODO add tidy5e integration and a module setting for custom stuff ?
   console.log(actor);
   const classes = Object.keys(actor.classes).filter((c) =>
     prepCasters.includes(c)
@@ -346,7 +347,7 @@ function getMaxPrepared(actor) {
 
   for (const instance of classes) {
     const castingAbility = getCastingAbility(instance);
-    const modifier = actor.system.abilities[castingAbility].mod;
+    const modifier = actor.system.abilities[castingAbility]?.mod || 0;
     const classLvl = getClassLvl(instance);
     const casterMod = getCasterMod(instance);
 
@@ -359,6 +360,7 @@ function getMaxPrepared(actor) {
 /**
  * Automatically fires after a long rest is completed and only for player characters who prepare spells. 
  * This will fire for any owner who initiates the long rest, including the GM.
+ * Credit for the code go to @DroopyMcCool on discord for this https://discord.com/channels/915186263609454632/1216220642744205423
  * @param {Actor} actor The actor to check
  * @param {object} results 
  * @returns {void} It will open a dialog for checkout the spells
@@ -404,26 +406,26 @@ export async function promptLongRestSpellReminder(actor, results) {
 
     // The Dialog instance reminding the player to prepare spells
     const content = `
-    <form>
-      <div class="${CONSTANTS.MODULE_NAME}-prep-spells-dialog">${game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.Title`)}</div>
+    <form class="${CONSTANTS.MODULE_NAME}">
+      <div class=".prep-spells-dialog">${game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.Title`)}</div>
       <br>
-      <div class="${CONSTANTS.MODULE_NAME}-prep-spells-dialog-hint">${game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.PrefixPreparedSpells`)} ${numPrepared}/${numMaxPrepared}</div>
+      <div class=".prep-spells-dialog-hint">${game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.PrefixPreparedSpells`)} ${numPrepared}/${numMaxPrepared}</div>
     </form>
     `;
-    
+    /*
     const style = `
     <style>
-      div.${CONSTANTS.MODULE_NAME}-prep-spells-dialog {
+      .prep-spells-dialog {
         margin-top: 5px;
       }
 
-      div.${CONSTANTS.MODULE_NAME}-prep-spells-dialog-hint {
+      .prep-spells-dialog-hint {
         text-align: center; 
         font-weight: bold; 
         opacity: 0.5;
       }
     
-      table.${CONSTANTS.MODULE_NAME}-prep-spells-table {
+      table.prep-spells-table {
         margin-left: auto;
         margin-right: auto;
 
@@ -457,13 +459,14 @@ export async function promptLongRestSpellReminder(actor, results) {
       }
     </style>
     `;
+    */
 
     // Generate table
 
     // This function sorts the spells by level before inserting them into the table
     let sortedData = data.sort((a, b) => a.system.level - b.system.level);;
     //console.log(sortedData);
-    let table = `<table class="${CONSTANTS.MODULE_NAME}-prep-spells-table">`;
+    let table = `<table class="prep-spells-table">`;
 
     table += `
       <tr>
@@ -488,7 +491,7 @@ export async function promptLongRestSpellReminder(actor, results) {
     
     new Dialog({
       title: actor.name,
-      content: style + content + table,
+      content: content + table,
       buttons: {
         ok: {
           label: game.i18n.localize(`REST-RECOVERY.Dialogs.PromptLongRestSpellReminder.Ok`),
